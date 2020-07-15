@@ -1,0 +1,46 @@
+name: clone repositories
+hosts: webservers
+ tasks:
+   git:
+     clone:
+       src: https://github.com/hisbu/templateweb.git
+       dest: ~/terraform/quiz3/ansible/
+
+name: install and configure mysql server
+hosts: ubuntu
+become: yes
+roles:
+  - role: geerlingguy.mysql
+tasks:
+  - name: create database dbpurwadhika
+    mysql_db:
+      name: dbpurwadhika
+      state: present
+  
+  - name: copy file db to mysql server
+    copy:
+      src: ~/terraform/quiz3/ansible/template/sample.sql
+      dest: /tmp
+
+  - name: import sample.sql to mysql server
+    mysql_db:
+      name: dbpurwadhika
+      state: import
+      target: /tmp/sample.sql
+
+name: install and configure httpd CentOS
+hosts: redhat
+become: yes  
+tasks:
+  - name: install httpd centos
+    yum: 
+      name: httpd
+      state: present
+  - name: ensure httpd is running
+    service:
+      name: httpd
+      state: started
+  - name: copy project web template
+    copy:
+      src: ~/terraform/quiz3/ansible/template/
+      dest: /var/www/html/       
